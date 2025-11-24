@@ -49,8 +49,8 @@ const Banner: NextPage<BannerProps> = ({
           <br />
           {desc2}
         </Text>
-        <Button fontSize="xl">
-          <Link href={linkName}>{buttonText}</Link>
+        <Button fontSize="xl" as={Link} href={linkName}>
+          {buttonText}
         </Button>
       </Box>
     </Flex>

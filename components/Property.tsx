@@ -16,7 +16,7 @@ type Props = {
 
 const Property: NextPage<Props> = ({ property }) => {
   return (
-    <Link href={`/property/${property.externalID}`} passHref>
+    <Link href={`/property/${property.externalID}`}>
       <Flex
         flexWrap="wrap"
         w={[300, 420]}
@@ -28,9 +28,8 @@ const Property: NextPage<Props> = ({ property }) => {
         {/* PROPERTY IMAGE */}
         <Box>
           <Image
-            src={`${
-              property.coverPhoto ? property.coverPhoto.url : DefaultImage
-            }`}
+            src={`${property.coverPhoto ? property.coverPhoto.url : DefaultImage
+              }`}
             width={400}
             height={260}
             alt="House"

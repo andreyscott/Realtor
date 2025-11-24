@@ -12,7 +12,7 @@ import Link from "next/link";
 import { FcAbout, FcHome, FcMenu } from "react-icons/fc";
 import type { NextPage } from "next";
 import { BsSearch } from "react-icons/bs";
-import {FiKey} from "react-icons/fi"
+import { FiKey } from "react-icons/fi"
 
 const Navbar: NextPage = () => {
   return (
@@ -30,18 +30,10 @@ const Navbar: NextPage = () => {
             color="red.400"
           />
           <MenuList>
-            <Link href="/" passHref>
-              <MenuItem icon={<FcHome />}>Home</MenuItem>
-            </Link>
-            <Link href="/search" passHref>
-              <MenuItem icon={<BsSearch />}>Search</MenuItem>
-            </Link>
-            <Link href="/search?purpose=for-sale" passHref>
-              <MenuItem icon={<FcAbout />}>Buy Property</MenuItem>
-            </Link>
-            <Link href="/search?purpose=for-rent" passHref>
-              <MenuItem icon={<FiKey />}>Rent Property</MenuItem>
-            </Link>
+            <MenuItem icon={<FcHome />} as={Link} href="/">Home</MenuItem>
+            <MenuItem icon={<BsSearch />} as={Link} href="/search">Search</MenuItem>
+            <MenuItem icon={<FcAbout />} as={Link} href="/search?purpose=for-sale">Buy Property</MenuItem>
+            <MenuItem icon={<FiKey />} as={Link} href="/search?purpose=for-rent">Rent Property</MenuItem>
           </MenuList>
         </Menu>
       </Box>
