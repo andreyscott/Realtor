@@ -6,12 +6,11 @@ import Link from "next/link";
 import { BsGridFill } from "react-icons/bs";
 import { FaBath, FaBed } from "react-icons/fa";
 import { GoVerified } from "react-icons/go";
-import { Hit as ForRentHit } from "../interfaces/for-rent";
-import { Hit as ForSaleHit } from "../interfaces/for-sale";
-import DefaultImage from "../public/house.jpg";
+import { SanityProperty } from "../interfaces/sanityProperty";
+import DefaultImage from "../../public/house.jpg";
 
 type Props = {
-  property: ForRentHit | ForSaleHit;
+  property: SanityProperty;
 };
 
 const Property: NextPage<Props> = ({ property }) => {

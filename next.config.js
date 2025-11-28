@@ -1,9 +1,17 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
   images: {
-    domains: ["bayut-production.s3.eu-central-1.amazonaws.com"],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'bayut-production.s3.eu-central-1.amazonaws.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.sanity.io',
+      },
+    ],
   },
 };
 

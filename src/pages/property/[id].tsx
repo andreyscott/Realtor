@@ -2,16 +2,16 @@ import { Avatar, Box, Flex, Text } from "@chakra-ui/react";
 import millify from "millify";
 import type { NextPage } from "next";
 import { GetServerSideProps } from "next";
-import { useRouter } from "next/router";
 import { BsGridFill } from "react-icons/bs";
 import { FaBath, FaBed } from "react-icons/fa";
 import { GoVerified } from "react-icons/go";
 import ImageScrollbar from "../../components/ImageScrollbar";
-import { PropertyDetails as PropertyDetailsInterface } from "../../interfaces/property-details";
-import { baseUrl, fetchApi } from "../../utils/fetchApi";
+import { SanityProperty } from "../../interfaces/sanityProperty";
+import { sanityClient } from "../../lib/sanity";
+import { propertyQuery } from "../../utils/sanityQueries";
 
 type Props = {
-  propertyDetails: PropertyDetailsInterface;
+  propertyDetails: SanityProperty;
 };
 
 const PropertyDetails: NextPage<Props> = ({ propertyDetails }) => {
@@ -34,7 +34,7 @@ const PropertyDetails: NextPage<Props> = ({ propertyDetails }) => {
 
   return (
     <Box maxWidth="1000px" margin="auto" p="4">
-      {propertyDetails.photos && <ImageScrollbar data={photos} />}
+      {photos && <ImageScrollbar data={photos} />}
       <Box w="full" p="6">
         <Flex paddingTop="2" alignItems="center" justifyContent="space-between">
           <Flex alignItems="center">
@@ -107,28 +107,26 @@ const PropertyDetails: NextPage<Props> = ({ propertyDetails }) => {
           )}
         </Flex>
         <Box>
-          {amenities.length && (
+          {amenities && amenities.length > 0 && (
             <Text fontSize="2xl" fontWeight="black" marginTop="5">
               Facilites:
             </Text>
           )}
           <Flex flexWrap="wrap">
-            {amenities?.map((item) =>
-              item?.amenities?.map((amenity: any) => (
-                <Text
-                  key={amenity.text}
-                  fontWeight="bold"
-                  color="blue.400"
-                  fontSize="l"
-                  p="2"
-                  bg="gray.200"
-                  m="1"
-                  borderRadius="5"
-                >
-                  {amenity.text}
-                </Text>
-              ))
-            )}
+            {amenities?.map((amenity: any) => (
+              <Text
+                key={amenity.text}
+                fontWeight="bold"
+                color="blue.400"
+                fontSize="l"
+                p="2"
+                bg="gray.200"
+                m="1"
+                borderRadius="5"
+              >
+                {amenity.text}
+              </Text>
+            ))}
           </Flex>
         </Box>
       </Box>
@@ -141,13 +139,11 @@ export default PropertyDetails;
 export const getServerSideProps: GetServerSideProps = async ({ params }) => {
   const propertyID = params?.id;
 
-  const data = await fetchApi(
-    `${baseUrl}/properties/detail?externalID=${propertyID}`
-  );
+  const data = await sanityClient.fetch(propertyQuery, { id: propertyID });
 
   return {
     props: {
-      propertyDetails: data,
+      propertyDetails: data || null,
     },
   };
 };

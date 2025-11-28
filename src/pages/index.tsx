@@ -4,9 +4,10 @@ import { GetStaticProps } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import Property from "../components/Property";
-import { ForRent } from "../interfaces/for-rent";
-import { ForSale } from "../interfaces/for-sale";
-import { baseUrl, fetchApi } from "../utils/fetchApi";
+import { sanityClient } from "../lib/sanity";
+import { groq } from "next-sanity";
+
+import { SanityProperty } from "../interfaces/sanityProperty";
 
 type BannerProps = {
   purpose: string;
@@ -20,8 +21,8 @@ type BannerProps = {
 };
 
 type Props = {
-  propertiesForSale: ForSale;
-  propertiesForRent: ForRent;
+  propertiesForSale: SanityProperty[];
+  propertiesForRent: SanityProperty[];
 };
 
 const Banner: NextPage<BannerProps> = ({
@@ -72,8 +73,8 @@ const Home: NextPage<Props> = ({ propertiesForSale, propertiesForRent }) => {
       />
 
       <Flex flexWrap="wrap" justifyContent="center">
-        {propertiesForRent.hits.map((property) => (
-          <Property key={property.id} property={property} />
+        {propertiesForRent?.map((property) => (
+          <Property key={property._id} property={property} />
         ))}
       </Flex>
 
@@ -89,8 +90,8 @@ const Home: NextPage<Props> = ({ propertiesForSale, propertiesForRent }) => {
       />
 
       <Flex flexWrap="wrap" justifyContent="center">
-        {propertiesForSale.hits.map((property) => (
-          <Property key={property.id} property={property} />
+        {propertiesForSale?.map((property) => (
+          <Property key={property._id} property={property} />
         ))}
       </Flex>
     </Box>
@@ -100,18 +101,36 @@ const Home: NextPage<Props> = ({ propertiesForSale, propertiesForRent }) => {
 export default Home;
 
 export const getStaticProps: GetStaticProps = async () => {
-  const properyForSale = await fetchApi(
-    `${baseUrl}/properties/list?locationExternalIDs=5002&purpose=for-sale&hitsPerPage=6`
-  );
+  const query = groq`
+    *[_type == "property" && purpose == $purpose][0...6] {
+      _id,
+      title,
+      price,
+      rentFrequency,
+      rooms,
+      baths,
+      area,
+      isVerified,
+      externalID,
+      "coverPhoto": {
+        "url": coverPhoto.asset->url
+      },
+      "agency": {
+        "logo": {
+          "url": agency.logo.asset->url
+        }
+      },
+      "slug": slug.current
+    }
+  `;
 
-  const properyForRent = await fetchApi(
-    `${baseUrl}/properties/list?locationExternalIDs=5002&purpose=for-rent&hitsPerPage=6`
-  );
+  const propertiesForSale = await sanityClient.fetch(query, { purpose: 'for-sale' });
+  const propertiesForRent = await sanityClient.fetch(query, { purpose: 'for-rent' });
 
   return {
     props: {
-      propertiesForSale: properyForSale,
-      propertiesForRent: properyForRent,
+      propertiesForSale,
+      propertiesForRent,
     },
   };
 };

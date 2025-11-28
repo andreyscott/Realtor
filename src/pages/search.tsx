@@ -7,12 +7,12 @@ import { useState } from "react";
 import { BsFilter } from "react-icons/bs";
 import Property from "../components/Property";
 import SearchFilters from "../components/SearchFilters";
-import { Hit as ForRentHit } from "../interfaces/for-rent";
-import { Hit as ForSaleHit } from "../interfaces/for-sale";
-import { baseUrl, fetchApi } from "../utils/fetchApi";
+import { SanityProperty } from "../interfaces/sanityProperty";
+import { sanityClient } from "../lib/sanity";
+import { groq } from "next-sanity";
 
 type Props = {
-  properties: any;
+  properties: SanityProperty[];
 };
 
 const Search: NextPage<Props> = ({ properties }) => {
@@ -41,11 +41,11 @@ const Search: NextPage<Props> = ({ properties }) => {
         Properties {router.query.purpose}
       </Text>
       <Flex flexWrap="wrap">
-        {properties?.hits?.map((property: ForRentHit | ForSaleHit) => (
-          <Property property={property} key={property.id} />
+        {properties?.map((property) => (
+          <Property property={property} key={property._id} />
         ))}
       </Flex>
-      {properties.length === 0 && (
+      {properties?.length === 0 && (
         <Flex
           justifyContent="center"
           alignItems="center"
@@ -79,16 +79,58 @@ export const getServerSideProps: GetServerSideProps = async ({ query }) => {
   const bathsMin = query.bathsMin || "0";
   const sort = query.sort || "price-desc";
   const areaMax = query.areaMax || "35000";
-  const locationExternalIDs = query.locationExternalIDs || "5002";
-  const categoryExternalID = query.categoryExternalID || "4";
 
-  const data = await fetchApi(
-    `${baseUrl}/properties/list?locationExternalIDs=${locationExternalIDs}&purpose=${purpose}&categoryExternalID=${categoryExternalID}&bathsMin=${bathsMin}&rentFrequency=${rentFrequency}&priceMin=${minPrice}&priceMax=${maxPrice}&roomsMin=${roomsMin}&sort=${sort}&areaMax=${areaMax}`
-  );
+  let order = "price desc";
+  if (sort === "price-asc") order = "price asc";
+  if (sort === "price-desc") order = "price desc";
+  if (sort === "date-asc") order = "_createdAt asc";
+  if (sort === "date-desc") order = "_createdAt desc";
+
+  // Construct GROQ query
+  const groqQuery = groq`
+    *[_type == "property" 
+      && purpose == $purpose 
+      && price >= $minPrice 
+      && price <= $maxPrice 
+      && rooms >= $roomsMin 
+      && baths >= $bathsMin
+      && area <= $areaMax
+    ] | order(${order}) {
+      _id,
+      title,
+      price,
+      rentFrequency,
+      rooms,
+      baths,
+      area,
+      isVerified,
+      externalID,
+      "coverPhoto": {
+        "url": coverPhoto.asset->url
+      },
+      "agency": {
+        "logo": {
+          "url": agency.logo.asset->url
+        }
+      },
+      "slug": slug.current
+    }
+  `;
+
+  const params = {
+    purpose,
+    minPrice: Number(minPrice),
+    maxPrice: Number(maxPrice),
+    roomsMin: Number(roomsMin),
+    bathsMin: Number(bathsMin),
+    areaMax: Number(areaMax),
+  };
+
+  const properties = await sanityClient.fetch(groqQuery, params);
 
   return {
     props: {
-      properties: data,
+      properties,
     },
   };
 };
